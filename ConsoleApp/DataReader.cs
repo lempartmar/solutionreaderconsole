@@ -13,30 +13,39 @@
 
         public void ImportAndPrintData(string fileToImport, bool printData = true)
         {
-            ImportedObjects = new List<ImportedObject>() { new ImportedObject() };
-
-            var streamReader = new StreamReader(fileToImport);
-
+            List<ImportedObject> ImportedObjects = new List<ImportedObject>();
             var importedLines = new List<string>();
-            while (!streamReader.EndOfStream)
+            
+            using (var streamReader = new StreamReader(fileToImport))
             {
-                var line = streamReader.ReadLine();
-                importedLines.Add(line);
-            }
 
-            for (int i = 0; i <= importedLines.Count; i++)
+                while (!streamReader.EndOfStream)
+                {
+                    var line = streamReader.ReadLine();
+                    if (line == null || String.IsNullOrWhiteSpace(line))
+                        continue;
+                    else
+                        importedLines.Add(line);
+                }
+            }
+            for (int i = 0; i <= importedLines.Count-1; i++)
             {
                 var importedLine = importedLines[i];
                 var values = importedLine.Split(';');
                 var importedObject = new ImportedObject();
-                importedObject.Type = values[0];
-                importedObject.Name = values[1];
-                importedObject.Schema = values[2];
-                importedObject.ParentName = values[3];
-                importedObject.ParentType = values[4];
-                importedObject.DataType = values[5];
-                importedObject.IsNullable = values[6];
-                ((List<ImportedObject>)ImportedObjects).Add(importedObject);
+                try
+                {
+                    importedObject.Type = values[0];
+                    importedObject.Name = values[1];
+                    importedObject.Schema = values[2];
+                    importedObject.ParentName = values[3];
+                    importedObject.ParentType = values[4];
+                    importedObject.DataType = values[5];
+                    importedObject.IsNullable = values[6];
+                }
+
+                catch (IndexOutOfRangeException e) { continue; }
+                 ((List<ImportedObject>)ImportedObjects).Add(importedObject);
             }
 
             // clear and correct imported data
@@ -103,23 +112,12 @@
 
     class ImportedObject : ImportedObjectBaseClass
     {
-        public string Name
-        {
-            get;
-            set;
-        }
-        public string Schema;
-
-        public string ParentName;
-        public string ParentType
-        {
-            get; set;
-        }
-
+        public string Schema { get; set; }
+        public string ParentName { get; set; }
+        public string ParentType { get; set; }
         public string DataType { get; set; }
         public string IsNullable { get; set; }
-
-        public double NumberOfChildren;
+        public double NumberOfChildren { get; set; }
     }
 
     class ImportedObjectBaseClass
